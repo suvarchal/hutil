@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=64.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hutil"
+version = "0.1.0"
+description = "HEALPix utilities for xarray datasets"
+authors = [
+    {name = "Suvarchal K. Cheedela", email = "suvarchal@duck.com"}
+]
+readme = "README.md"
+requires-python = ">=3.6"
+dependencies = [
+    "numpy",
+    "xarray",
+    "healpy",
+    "matplotlib",
+    "cartopy",
+    "shapely",
+]
+
+[project.optional-dependencies]
+shapefile = ["geopandas"]
+
+[project.urls]
+Homepage = "https://github.com/suvarchal/hutil"

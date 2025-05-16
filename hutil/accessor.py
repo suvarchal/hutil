@@ -245,18 +245,37 @@ class HutilDatasetAccessor:
         self._ensure_latlon()
         return selection.get_value_at_latlon(self._obj, lat, lon, method)
     
-    def plot(self, title=None, cmap='inferno', projection='PlateCarree'):
+    def plot(self, title=None, cmap='inferno', projection='PlateCarree', 
+             vmin=None, vmax=None, robust=True, figsize=(10, 6),
+             coastlines=True, add_colorbar=True, cbar_label=None,
+             central_longitude=0, extent=None):
         """
-        Plot HEALPix data with proper coordinate handling.
+        Create an enhanced map plot of HEALPix data using cartopy.
         
         Parameters:
         -----------
         title : str, optional
             Plot title
         cmap : str, optional
-            Colormap name
+            Colormap name (default: 'inferno')
         projection : str, optional
-            Map projection name from cartopy.crs
+            Map projection name from cartopy.crs (default: 'PlateCarree')
+        vmin, vmax : float, optional
+            Min and max values for colormap scaling
+        robust : bool, optional
+            If True and vmin/vmax not provided, use robust quantile-based scaling
+        figsize : tuple, optional
+            Figure size (width, height) in inches
+        coastlines : bool, optional
+            Whether to add coastlines to the map
+        add_colorbar : bool, optional
+            Whether to add a colorbar
+        cbar_label : str, optional
+            Label for the colorbar
+        central_longitude : float, optional
+            Central longitude for the projection
+        extent : list, optional
+            Map extent [lon_min, lon_max, lat_min, lat_max]
             
         Returns:
         --------
@@ -264,7 +283,12 @@ class HutilDatasetAccessor:
             The figure object
         """
         self._ensure_latlon()
-        return selection.plot_healpix_selection(self._obj, title, cmap, projection)
+        from .plotting import plot_map
+        return plot_map(self._obj, projection=projection, cmap=cmap, title=title,
+                      vmin=vmin, vmax=vmax, robust=robust, figsize=figsize,
+                      coastlines=coastlines, add_colorbar=add_colorbar, 
+                      cbar_label=cbar_label, central_longitude=central_longitude,
+                      extent=extent)
     
     def select(self, lat=None, lon=None, time=None, method='nearest'):
         """
@@ -499,25 +523,49 @@ class HutilDataArrayAccessor:
         """
         return selection.get_value_at_latlon(self._obj, lat, lon, method)
     
-    def plot(self, title=None, cmap='inferno', projection='PlateCarree'):
+    def plot(self, title=None, cmap='inferno', projection='PlateCarree', 
+             vmin=None, vmax=None, robust=True, figsize=(10, 6),
+             coastlines=True, add_colorbar=True, cbar_label=None,
+             central_longitude=0, extent=None):
         """
-        Plot HEALPix data with proper coordinate handling.
+        Create an enhanced map plot of HEALPix data using cartopy.
         
         Parameters:
         -----------
         title : str, optional
             Plot title
         cmap : str, optional
-            Colormap name
+            Colormap name (default: 'inferno')
         projection : str, optional
-            Map projection name from cartopy.crs
+            Map projection name from cartopy.crs (default: 'PlateCarree')
+        vmin, vmax : float, optional
+            Min and max values for colormap scaling
+        robust : bool, optional
+            If True and vmin/vmax not provided, use robust quantile-based scaling
+        figsize : tuple, optional
+            Figure size (width, height) in inches
+        coastlines : bool, optional
+            Whether to add coastlines to the map
+        add_colorbar : bool, optional
+            Whether to add a colorbar
+        cbar_label : str, optional
+            Label for the colorbar
+        central_longitude : float, optional
+            Central longitude for the projection
+        extent : list, optional
+            Map extent [lon_min, lon_max, lat_min, lat_max]
             
         Returns:
         --------
         matplotlib.figure.Figure
             The figure object
         """
-        return selection.plot_healpix_selection(self._obj, title, cmap, projection)
+        from .plotting import plot_map
+        return plot_map(self._obj, projection=projection, cmap=cmap, title=title,
+                      vmin=vmin, vmax=vmax, robust=robust, figsize=figsize,
+                      coastlines=coastlines, add_colorbar=add_colorbar, 
+                      cbar_label=cbar_label, central_longitude=central_longitude,
+                      extent=extent)
     
     def select(self, lat=None, lon=None, time=None, method='nearest'):
         """

@@ -26,6 +26,7 @@ from .selection import (
 )
 
 from .accessor import register_hutil_accessor
+from . import plotting
 
 # Register the accessor when the package is imported
-register_hutil_accessor()
+accessor.register_hutil_accessor()

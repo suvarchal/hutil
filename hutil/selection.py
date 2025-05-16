@@ -545,42 +545,93 @@ def plot_healpix_selection(data, title=None, cmap='inferno', projection='PlateCa
     matplotlib.figure.Figure
         The figure object
     """
+    import matplotlib.pyplot as plt
+    import cartopy.crs as ccrs
+    import numpy as np
+    
     # Ensure we have a DataArray
     if isinstance(data, xr.Dataset):
         if len(data.data_vars) == 0:
             raise ValueError("Dataset has no data variables")
         # Use the first data variable
         var_name = list(data.data_vars)[0]
-        data = data[var_name]
+        data_array = data[var_name]
+    else:
+        data_array = data
     
     # Ensure lat/lon coordinates exist
-    if 'lat' not in data.coords or 'lon' not in data.coords:
+    if 'lat' not in data_array.coords or 'lon' not in data_array.coords:
         raise ValueError("Data must have lat/lon coordinates. Use add_latlon_coords first.")
     
     # Create figure with map projection
     proj = getattr(ccrs, projection)()
     fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={'projection': proj})
     
+    # Get the data values and handle NaN values
+    values = data_array.values
+    
+    # Make sure we have valid data to plot
+    if np.all(np.isnan(values)):
+        ax.text(0.5, 0.5, 'No valid data to plot', transform=ax.transAxes, 
+                ha='center', va='center', fontsize=12)
+        ax.coastlines()
+        if title:
+            plt.title(title)
+        return fig
+    
+    # Get min/max for better color scaling
+    vmin = np.nanmin(values)
+    vmax = np.nanmax(values)
+    
     # Plot the data
     scatter = ax.scatter(
-        data.lon, data.lat, 
-        c=data.values, 
+        data_array.lon.values, data_array.lat.values, 
+        c=values, 
         cmap=cmap,
         transform=ccrs.PlateCarree(),
-        s=10,  # Point size
-        alpha=0.7  # Transparency
+        s=20,  # Increased point size for better visibility
+        alpha=0.8,  # Slightly more opaque
+        vmin=vmin,
+        vmax=vmax,
+        edgecolor='none'  # Remove point borders for cleaner look
     )
     
     # Add coastlines and grid
     ax.coastlines()
-    ax.gridlines(draw_labels=True)
+    gl = ax.gridlines(draw_labels=True, linewidth=0.5, alpha=0.5)
+    
+    # Improve gridline labels
+    if hasattr(gl, 'top_labels'):
+        gl.top_labels = False
+    if hasattr(gl, 'right_labels'):
+        gl.right_labels = False
     
     # Add colorbar
-    plt.colorbar(scatter, ax=ax, label=data.name if data.name else 'Value')
+    label = data_array.name if data_array.name else 'Value'
+    if hasattr(data_array, 'units'):
+        label += f' ({data_array.units})'
+    elif 'units' in data_array.attrs:
+        label += f' ({data_array.attrs["units"]})'
+    
+    cbar = plt.colorbar(scatter, ax=ax, label=label, pad=0.02, shrink=0.8)
     
     # Set title
     if title:
         plt.title(title)
+    
+    # Set extent to data bounds with some padding
+    lon_min, lon_max = np.nanmin(data_array.lon.values), np.nanmax(data_array.lon.values)
+    lat_min, lat_max = np.nanmin(data_array.lat.values), np.nanmax(data_array.lat.values)
+    
+    # Add padding (10% of range)
+    lon_pad = (lon_max - lon_min) * 0.1
+    lat_pad = (lat_max - lat_min) * 0.1
+    
+    # Set map extent if we have a reasonable range
+    if lon_max - lon_min > 1 and lat_max - lat_min > 1:
+        ax.set_extent([lon_min - lon_pad, lon_max + lon_pad, 
+                      lat_min - lat_pad, lat_max + lat_pad], 
+                     crs=ccrs.PlateCarree())
     
     return fig
 
